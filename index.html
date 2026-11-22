@@ -113,7 +113,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--vermilion);outline-
   <div class="list" id="list-places"></div>
 </section>
 
-<p class="foot">"Booked" = already planned by the group. "Suggested" = optional idea. "Check hours" means hours or exact location weren't confirmed from a primary source, so tap through to Google Maps before going. Map © OpenStreetMap contributors. Pin locations from Mapbox. Updated Nov 22, 2026.</p>
+<p class="foot">"Booked" = already planned by the group. "Suggested" = optional idea. "Check hours" means hours or exact location weren't confirmed from a primary source, so tap through to Google Maps before going. Map © Mapbox © OpenStreetMap contributors. Pin locations from Mapbox. Updated Nov 22, 2026.</p>
 </div>
 
 <script src="leaflet/leaflet.js"></script>
@@ -253,7 +253,7 @@ function initMap(){
   if(!window.L){status.textContent="The map library didn't load (no connection?). The lists and Google Maps buttons still work.";return}
   map=L.map("map",{zoomControl:true,tap:false}).setView([34.995,135.76],13);
   const dark=matchMedia("(prefers-color-scheme: dark)").matches;
-  const MBX="";
+  const MBX="pk.eyJ1IjoicGV0ZXJnbmciLCJhIjoiY2lpZTN4ZnBkMDE0c3Vka3Jwd3U0ZmlkeCJ9.P9q4zPCS26kLDfVvQ3Sm3g";
   const SOURCES=[
     ...(MBX?[{url:`https://api.mapbox.com/styles/v1/mapbox/${dark?"dark-v11":"streets-v12"}/tiles/512/{z}/{x}/{y}@2x?access_token=${MBX}`,opt:{tileSize:512,zoomOffset:-1,maxZoom:20,attribution:'© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}}]:[]),
     {url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",opt:{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}},
