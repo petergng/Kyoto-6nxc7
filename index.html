@@ -247,11 +247,15 @@ const visible = p => inDay(p,st.day) && (st.cat==="all"||p.cat===st.cat);
 function initMap(){
   const status=document.getElementById("status");
   if(!window.L){status.textContent="The map library didn't load (no connection?). The lists and Google Maps buttons still work.";return}
-  map=L.map("map",{zoomControl:true,tap:true}).setView([34.995,135.76],13);
+  map=L.map("map",{zoomControl:true,tap:false}).setView([34.995,135.76],13);
   const dark=matchMedia("(prefers-color-scheme: dark)").matches;
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${dark?"dark_all":"voyager"}/{z}/{x}/{y}{r}.png`,{
+  let base=L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${dark?"dark_all":"voyager"}/{z}/{x}/{y}{r}.png`,{
     maxZoom:20, subdomains:"abcd", attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'
   }).addTo(map);
+  let tileErr=0, swapped=false;
+  base.on("tileerror",()=>{ if(++tileErr>6 && !swapped){ swapped=true; map.removeLayer(base);
+    base=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+    base.on("tileerror",()=>{status.textContent="Map tiles aren't loading (weak signal?). Pins, lists and Google Maps buttons still work.";}); }});
   P.forEach(p=>{
     if(p.lat==null) return;
     const icon=L.divIcon({className:"",html:`<div class="pinicon ${p.cat==="booked"?"booked":""}" style="background:${fill(p.cat)}">${num[p.id]}</div>`,iconSize:p.cat==="booked"?[32,32]:[28,28],iconAnchor:p.cat==="booked"?[16,16]:[14,14],popupAnchor:[0,-14]});
