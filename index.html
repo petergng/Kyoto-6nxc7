@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171614" media="(prefers-color-scheme: dark)">
+<title>Kyoto Guide</title>
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<style>
+:root{
+  --bg:#f6f4f1; --surface:#ffffff; --ink:#22201d; --muted:#6c675f; --line:#e2ddd5;
+  --vermilion:#c8452d; --coffee:#8a5a2b; --breakfast:#c98a12; --eat:#d0662a; --kids:#2f7d6d; --shop:#4c5fa8; --me:#1a73e8;
+  --display:"Hiragino Mincho ProN","Yu Mincho",Georgia,serif; --body:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#171614; --surface:#211f1c; --ink:#eeeae4; --muted:#a39d93; --line:#34312c;
+  --vermilion:#e66a50; --coffee:#c98f5a; --breakfast:#e2a93a; --eat:#ee8a4f; --kids:#4fb39e; --shop:#8597de; --me:#4c9bff; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:48px}
+header h1{font-family:var(--display);font-size:1.6rem;margin:0;padding-top:max(10px,env(safe-area-inset-top));letter-spacing:.02em}
+header p{margin:0;color:var(--muted);font-size:.85rem}
+.tabs{position:sticky;top:0;z-index:1000;background:var(--bg);display:flex;gap:6px;padding:10px 0 8px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line);margin-bottom:10px}
+.tabs button{flex:1;font:600 .95rem var(--body);padding:10px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:2px solid var(--vermilion);outline-offset:2px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font:500 .85rem var(--body);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:650}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.mapwrap{position:relative;margin:6px 0 10px}
+#map{height:62vh;min-height:340px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:var(--surface);z-index:1}
+.locate{position:absolute;right:10px;bottom:22px;z-index:500;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--me);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.locate svg{width:22px;height:22px}
+.locate.on{background:var(--me);color:#fff;border-color:var(--me)}
+.fitall{position:absolute;right:10px;bottom:76px;z-index:500;font:600 .78rem var(--body);padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.status{font-size:.8rem;color:var(--muted);margin:0 2px 10px;min-height:1.2em}
+.pinicon{width:28px;height:28px;border-radius:50%;color:#fff;font:700 12px/24px var(--body);text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.pinicon.booked{width:32px;height:32px;line-height:28px;border-radius:8px}
+.medot{width:18px;height:18px;border-radius:50%;background:var(--me);border:3px solid #fff;box-shadow:0 0 0 6px rgba(26,115,232,.25),0 1px 4px rgba(0,0,0,.4)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-popup-content{margin:12px 14px;font:14px/1.4 var(--body);min-width:200px}
+.leaflet-popup-content h4{margin:0 0 4px;font-size:1rem}
+.leaflet-popup-content p{margin:0 0 8px;color:var(--muted);font-size:.85rem}
+.leaflet-container a.go,.go{display:block;text-align:center;font:600 .92rem var(--body);padding:11px;border-radius:10px;background:var(--ink);color:var(--bg);text-decoration:none}
+.leaflet-container .more{display:block;text-align:center;margin-top:8px;font-size:.85rem;color:var(--vermilion);text-decoration:none}
+.leaflet-container{font-family:var(--body)}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;scroll-margin-top:80px}
+.card.hl{box-shadow:0 0 0 2px var(--vermilion)}
+.card .top{display:flex;align-items:flex-start;gap:10px}
+.card h3{margin:0;font-size:1.02rem;line-height:1.3;flex:1;min-width:0}
+.card .show{flex:none;font:600 .78rem var(--body);padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.num{flex:none;width:26px;height:26px;border-radius:50%;color:#fff;font:600 .78rem var(--body);display:grid;place-items:center}
+.meta{font-size:.82rem;color:var(--muted)}
+.why{margin:0;font-size:.92rem}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:.72rem;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.warn{border-color:var(--breakfast);color:var(--breakfast)}
+.tag.ok{border-color:var(--kids);color:var(--kids)}
+.tag.who{font-weight:600;color:var(--ink)}
+.day{margin-bottom:22px}
+.day h2{font-family:var(--display);font-size:1.3rem;margin:4px 0 2px}
+.day .sub{color:var(--muted);font-size:.85rem;margin-bottom:8px}
+.day .onmap{font:600 .8rem var(--body);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);margin-bottom:6px}
+.slot{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.slot time{font:600 .85rem var(--body);font-variant-numeric:tabular-nums;color:var(--muted)}
+.slot .body{min-width:0}
+.slot a{color:var(--vermilion);font-weight:600;text-decoration:none}
+.slot .alt{font-size:.85rem;color:var(--muted);margin-top:3px}
+.who-a{font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:6px;background:var(--line);margin-right:4px;vertical-align:1px}
+.who-c{font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:6px;border:1px solid var(--line);margin-right:4px;vertical-align:1px}
+.foot{font-size:.78rem;color:var(--muted);margin-top:24px}
+@media (prefers-color-scheme: dark){.leaflet-tile-pane{filter:none}.pinicon,.medot{border-color:#211f1c}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>京都 · Kyoto</h1>
+  <p>Sun Nov 22 – Wed Nov 25 · ¥155 ≈ $1</p>
+</header>
+<nav class="tabs" role="tablist">
+  <button id="t-map" role="tab" aria-selected="true" data-v="map">Map</button>
+  <button id="t-days" role="tab" aria-selected="false" data-v="days">Days</button>
+  <button id="t-places" role="tab" aria-selected="false" data-v="places">Places</button>
+</nav>
+
+<section id="v-map">
+  <div class="chips" id="chips-day" aria-label="Filter by day"></div>
+  <div class="chips" id="chips-cat" aria-label="Filter by type"></div>
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Live map of Kyoto with pins"></div>
+    <button class="fitall" id="fit">Show all pins</button>
+    <button class="locate" id="locate" aria-label="Show my location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  </div>
+  <p class="status" id="status">Tap ◎ to show where you are. Pins are approximate; the Google Maps button opens the exact spot.</p>
+  <div class="list" id="list-map"></div>
+</section>
+<section id="v-days" hidden></section>
+<section id="v-places" hidden>
+  <div class="chips" id="chips-places"></div>
+  <div class="list" id="list-places"></div>
+</section>
+
+<p class="foot">"Booked" = already planned by the group. "Suggested" = optional idea. "Check hours" means hours or exact location weren't confirmed from a primary source, so tap through to Google Maps before going. Map © OpenStreetMap contributors, © CARTO. Updated Nov 22, 2026.</p>
+</div>
+
+<script src="leaflet/leaflet.js"></script>
+<script>
+const M = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+const CATS = {
+  booked:{label:"Booked",color:"var(--vermilion)"},
+  coffee:{label:"Coffee",color:"var(--coffee)"},
+  breakfast:{label:"Breakfast",color:"var(--breakfast)"},
+  eat:{label:"Eat",color:"var(--eat)"},
+  kids:{label:"Kids",color:"var(--kids)"},
+  shop:{label:"Shop",color:"var(--shop)"}
+};
+const P = [
+ {id:"aeon",cat:"booked",who:"booked",name:"AEON Mall Kyoto",q:"AEON MALL KYOTO",lat:34.9826,lng:135.7536,why:"Sun night dinner + supplies. Shops 10–9, 4F restaurants to ~10 PM, food court to 9. Muji 2F, Kohyo supermarket 1F (to 10 PM), Daiso 4F, toy shop.",src:"InsideKyoto, Savor Japan, kyotostation.com",tags:["check"]},
+ {id:"rail",cat:"booked",who:"booked",name:"Kyoto Railway Museum",q:"Kyoto Railway Museum",lat:34.98651,lng:135.74237,why:"Mon 10 AM. 10:00–5:00, closed Wednesdays, open holidays. Adult ¥1,500 ($9.70), elementary ¥500 ($3.20), age 3+ ¥200 ($1.30). Stroller parking, no rental. Driving simulator needs an online ticket (¥100).",src:"kyotorailwaymuseum.jp",tags:["verified"]},
+ {id:"umekoji",cat:"kids",who:"booked",name:"Umekoji Park (+ Park Cafe)",q:"Umekoji Park Kyoto",lat:34.98662,lng:135.74533,why:"Big lawn and playground between the Railway Museum and Aquarium. Good place to let kids run before naps.",src:"Kyoto City official (kyoto.travel)",tags:[]},
+ {id:"yasaka",cat:"booked",who:"booked",name:"Gion + Yasaka Shrine",q:"Yasaka Shrine Kyoto",lat:35.00364,lng:135.77852,why:"Mon afternoon. Lanterns light up after dark. Holiday crowds expected.",tags:[]},
+ {id:"inari",cat:"booked",who:"booked",name:"Fushimi Inari Taisha",q:"Fushimi Inari Taisha",lat:34.96709,lng:135.77269,why:"Tue 8 AM. Lots of steps above the first gates, so carrier beats stroller.",tags:[]},
+ {id:"nishiki",cat:"booked",who:"booked",name:"Nishiki Market",q:"Nishiki Market Kyoto",lat:35.00563,lng:135.76584,why:"Tue 11:30. Narrow and packed at midday; stroller is hard, carrier easier.",tags:[]},
+ {id:"kaleido",cat:"booked",who:"booked",name:"Kyoto Kaleidoscope Museum",q:"Kyoto Kaleidoscope Museum",lat:35.0077,lng:135.7607,why:"Tue 2 PM. Tickets at the door.",tags:[]},
+ {id:"arashi",cat:"booked",who:"booked",name:"Arashiyama Bamboo Grove",q:"Arashiyama Bamboo Grove",lat:35.01704,lng:135.67199,why:"Wed 8 AM. Monkey Park is cash only and a steep 20-min climb.",tags:[]},
+
+ {id:"walden",cat:"coffee",who:"suggested",name:"Walden Woods Kyoto",q:"Walden Woods Kyoto",lat:34.9953,lng:135.7556,why:"All-white roastery and café near Gojo/Karasuma. A short walk from the Kyoto Station area.",src:"Tabelog Cafe WEST Top 100 2025, Where Tara Went",hours:"Listed 8:30–6 daily incl. holidays (user-submitted)",tags:["top100","check"]},
+ {id:"kaikado",cat:"coffee",who:"suggested",name:"Kaikado Café",q:"Kaikado Cafe Kyoto",lat:34.9907,lng:135.7663,why:"Run by the famous tea-caddy maker Kaikado, in an old tram garage by the Kamo river. Morning coffee stand plus café.",src:"Tabelog Cafe WEST Top 100 2025, Afar",hours:"Coffee stand 8–10:45, café 11–6, closed Thu (HAMONI listing)",tags:["top100","check"]},
+ {id:"kurasu",cat:"coffee",who:"suggested",name:"Kurasu Kyoto",q:"Kurasu Kyoto Stand",lat:34.9889,lng:135.7566,why:"Well-known Kyoto roaster, 7 min walk from Kyoto Station. Handy before a train.",src:"InsideKyoto (Nov 2025), Kurasu site, Where Tara Went",hours:"8–6, no closed days listed",tags:["check"]},
+ {id:"arabica",cat:"coffee",who:"suggested",name:"% Arabica Kyoto Higashiyama",q:"% Arabica Kyoto Higashiyama",lat:34.9990,lng:135.7800,why:"Near Yasaka, fits the Gion afternoon. (The Arashiyama branch fits Wed morning.)",src:"Where Tara Went",hours:"Not verified",tags:["check"]},
+ {id:"elephant",cat:"coffee",who:"suggested",name:"Elephant Factory Coffee",q:"Elephant Factory Coffee Kyoto",lat:35.0070,lng:135.7697,why:"Tiny upstairs hideaway with books and slow pour-overs. Adults only, really.",src:"Tabelog Cafe WEST Top 100 2025",hours:"Not verified",tags:["top100","check"]},
+ {id:"rokuyosha",cat:"coffee",who:"suggested",name:"Rokuyosha (basement)",q:"Rokuyosha Coffee Kyoto",lat:35.0087,lng:135.7703,why:"1950s kissaten on Kawaramachi-Sanjo, famous for its donuts. Tabelog 3.66.",src:"Tabelog Kissaten Top 100 2026 (shop page)",hours:"Café 12–6 (bar after), closed Wed. Cash only, 15 seats",tags:["top100","verified"]},
+ {id:"songbird",cat:"coffee",who:"suggested",name:"Songbird Coffee",q:"Songbird Coffee Kyoto",lat:35.0120,lng:135.7540,why:"Design-y café near Nijo Castle known for its toast and drip coffee.",src:"Tabelog Cafe WEST Top 100 2025",hours:"Not verified",tags:["top100","check"]},
+ {id:"clamp",cat:"coffee",who:"suggested",name:"Clamp Coffee Sarasa",q:"Clamp Coffee Sarasa Kyoto",lat:35.0095,lng:135.7445,why:"Roaster in a converted machiya near Nijo Station.",src:"Tabelog Cafe WEST Top 100 2025, Where Tara Went",hours:"Not verified",tags:["top100","check"]},
+ {id:"vermillion",cat:"coffee",who:"suggested",name:"Vermillion Café",q:"Vermillion Cafe Fushimi Inari",lat:34.9665,lng:135.7742,why:"Quiet riverside café just off Fushimi Inari, good after the gates.",src:"Where Tara Went",hours:"Not verified",tags:["check"]},
+
+ {id:"maeda",cat:"breakfast",who:"suggested",name:"Maeda Coffee Muromachi (main)",q:"Maeda Coffee Muromachi Honten Kyoto",lat:35.0058,lng:135.7578,why:"Old-school Kyoto coffee house with about 100 seats. The easiest place to seat 8 for breakfast.",src:"magical-trip breakfast guide",hours:"7–6, morning set 7–11, no closed days, no reservations",tags:["group"]},
+ {id:"ichikawaya",cat:"breakfast",who:"suggested",name:"Ichikawaya Coffee",q:"Ichikawaya Coffee Kyoto",lat:34.9945,lng:135.7742,why:"Machiya kissaten with morning sets and fruit sandos. Kids and strollers welcome per Tabelog. 25 seats.",src:"Tabelog Cafe WEST Top 100 2025 (shop page)",hours:"8–5. Closed Tue (and 2nd/4th Wed). Open Mon",tags:["top100","verified","kids"]},
+ {id:"lorimer",cat:"breakfast",who:"suggested",name:"Lorimer Kyoto",q:"Lorimer Kyoto",lat:34.9967,lng:135.7613,why:"Japanese breakfast of grilled fish, rice, miso and pickles. Near Gojo/Karasuma. Three 4-person tables upstairs; takes reservations.",src:"Tabelog (shop page), Japan Times",hours:"Hours not on Tabelog. Check",tags:["check"]},
+ {id:"takagi",cat:"breakfast",who:"suggested",name:"Takagi Coffee (Takatsuji main)",q:"Takagi Coffee Takatsuji Honten Kyoto",lat:35.0003,lng:135.7560,why:"Classic kissaten known for big morning sets, short walk from Gojo/Karasuma.",src:"Tabelog Kissaten Top 100 2026",hours:"Not verified",tags:["top100","check"]},
+
+ {id:"kushiya",cat:"eat",who:"suggested",name:"Kushiya Monogatari (AEON 4F)",q:"Kushiya Monogatari AEON MALL KYOTO",lat:34.9822,lng:135.7530,why:"Self-serve skewer buffet; you fry at the table and kids pick their own. 90 min.",src:"Savor Japan",hours:"11–10. About ¥2,300 ($15)/adult weekday dinner; weekend price not listed",tags:["kids"]},
+ {id:"ganko",cat:"eat",who:"suggested",name:"Ganko Sushi Sanjo",q:"Ganko Sushi Sanjo Kyoto",lat:35.0090,lng:135.7712,why:"Big sushi restaurant with booths, big tables and a kids' menu. Good after Gion on Monday.",src:"InsideKyoto (child-friendly list)",hours:"Not verified",tags:["kids","group","check"]},
+ {id:"tajimaya",cat:"eat",who:"suggested",name:"Tajimaya, Yodobashi Kyoto 6F",q:"Tajimaya Yodobashi Kyoto",lat:34.9878,lng:135.7595,why:"All-you-can-eat shabu-shabu and sukiyaki with unlimited vegetables. Easy group dinner by the station.",src:"LiveJapan Kyoto Station guide",hours:"Not verified",tags:["group","check"]},
+ {id:"ramen",cat:"eat",who:"suggested",name:"Kyoto Ramen Koji (Station 10F)",q:"Kyoto Ramen Koji",lat:34.9850,lng:135.7580,why:"Floor of ramen shops in the station. Menya Kotetsu has a mild white-miso bowl for kids.",src:"LiveJapan Kyoto Station guide",hours:"11–10",tags:["check"]},
+
+ {id:"aquarium",cat:"kids",who:"suggested",name:"Kyoto Aquarium",q:"Kyoto Aquarium",lat:34.98725,lng:135.74774,why:"Next to the Railway Museum. Ramps and elevators. Adult ¥2,600 ($17), elementary ¥1,400 ($9), age 3+ ¥900 ($5.80).",src:"kyoto-aquarium.com",hours:"10–6, open all year",tags:["verified","kids"]},
+ {id:"teamlab",cat:"kids",who:"suggested",name:"teamLab Biovortex Kyoto",q:"teamLab Biovortex Kyoto",lat:34.9808,lng:135.7630,why:"Immersive digital art, a short walk from Kyoto Station. Great rainy-day pick.",src:"Kyoto City official (kyoto.travel)",hours:"Timed tickets likely. Check",tags:["check"]},
+ {id:"hirata",cat:"kids",who:"suggested",name:"Kyodo Gangu Hirata",q:"Kyodo Gangu Hirata Kyoto",lat:34.9812,lng:135.7478,why:"Tiny shop of traditional Kyoto clay toys by To-ji. Fun souvenir for kids.",src:"Monocle",hours:"Not verified",tags:["check"]},
+ {id:"arihana",cat:"kids",who:"suggested",name:"AriHana Kyoto",q:"AriHana Kyoto",lat:34.9975,lng:135.7790,why:"Traditional Japanese games in a small house near Kiyomizu. Hands-on for little kids.",src:"Kyoto City official (kyoto.travel)",hours:"Not verified",tags:["check"]},
+
+ {id:"onitsuka",cat:"shop",who:"suggested",name:"Onitsuka Tiger Kyoto",q:"Onitsuka Tiger Kyoto",lat:35.0047,lng:135.7690,why:"Flagship on Kawaramachi, opened 2024.",src:"Onitsuka Tiger official",hours:"11–9 (2024 article)",tags:["check"]},
+ {id:"fascinate",cat:"shop",who:"suggested",name:"FASCINATE Kyoto (ASICS)",q:"FASCINATE Kyoto",lat:35.0047,lng:135.7663,why:"Select shop with ASICS's more design-led lines, near Kawaramachi.",src:"FASCINATE official",hours:"12–8",tags:[]},
+ {id:"dandd",cat:"shop",who:"suggested",name:"D&DEPARTMENT Kyoto",q:"D&DEPARTMENT KYOTO",lat:35.0009,lng:135.76259,why:"Kyoto-made homeware and food inside Bukko-ji temple, near Gojo/Karasuma. Has Kyoto tea caddies.",src:"Monocle",hours:"Not verified",tags:["check"]},
+ {id:"kaikadoshop",cat:"shop",who:"suggested",name:"Kaikado (tea caddies)",q:"Kaikado Kyoto",lat:34.9918,lng:135.7672,why:"Hand-made copper and tin tea caddies since 1875. The Kyoto souvenir that lasts.",src:"Monocle, Afar",hours:"Not verified",tags:["check"]},
+ {id:"kyukyodo",cat:"shop",who:"suggested",name:"Kyukyodo",q:"Kyukyodo Kyoto Teramachi",lat:35.0096,lng:135.7673,why:"330-year-old stationery, incense and washi shop on Teramachi.",src:"Fodor's",hours:"Not verified",tags:["check"]},
+ {id:"ippodo",cat:"shop",who:"booked",name:"Ippodo Tea (main store)",q:"Ippodo Tea Kyoto Main Store",lat:35.0146,lng:135.7680,why:"Famous matcha shop. There's also a branch in JR Kyoto Isetan B1.",hours:"Not verified",tags:["check"]},
+ {id:"kura",cat:"shop",who:"suggested",name:"Kura Daily Store",q:"Kura Daily Store Kyoto",lat:35.0080,lng:135.7505,why:"Folk craft (mingei) shop: ceramics, furoshiki, canvas totes.",src:"Monocle",hours:"Not verified",tags:["check"]},
+ {id:"takashimaya",cat:"shop",who:"suggested",name:"Takashimaya Kyoto",q:"Takashimaya Kyoto",lat:35.00348,lng:135.768,why:"Department store at Shijo-Kawaramachi; big food hall in the basement and Marukyu Koyamaen matcha.",src:"Fodor's",hours:"Not verified",tags:["check"]},
+ {id:"monkey",cat:"kids",who:"booked",name:"Iwatayama Monkey Park",q:"Iwatayama Monkey Park",lat:35.0094,lng:135.6774,why:"Wed morning option. Cash only and a steep 20-min climb, so carrier for the toddler.",hours:"Not verified",tags:["check"]},
+ {id:"arabicaA",cat:"coffee",who:"suggested",name:"% Arabica Kyoto Arashiyama",q:"% Arabica Kyoto Arashiyama",lat:35.0127,lng:135.6776,why:"By the river at Togetsukyo bridge. Coffee after the bamboo grove.",hours:"Not verified",tags:["check"]},
+ {id:"adashino",cat:"kids",who:"suggested",name:"Adashino Nenbutsuji",q:"Adashino Nenbutsuji",lat:35.0257,lng:135.6676,why:"Quieter alternative in north Arashiyama: thousands of stone statues and a small bamboo path.",hours:"Not verified",tags:["check"]},
+];
+
+const DAYS = [
+ {h:"Sun Nov 22",sub:"Arrive, settle in, easy dinner",s:[
+  ["4:45","a","Check in at the hotel."],
+  ["5:30","a","<a href='"+M("AEON MALL KYOTO")+"'>AEON Mall</a> by the station's south (Hachijo) exit.","Dinner: <a href='"+M("Kushiya Monogatari AEON MALL KYOTO")+"'>Kushiya Monogatari</a> 4F, fry-your-own skewers (~¥2,300 / $15 adult). Backup: 4F food court (closes 9). Grab breakfast snacks at Kohyo 1F."],
+  ["7:30","c","Back to the hotel, early night."]]},
+ {h:"Mon Nov 23",sub:"Holiday · trains, park, Gion at dusk",s:[
+  ["7:45","c","Coffee: <a href='"+M("Walden Woods Kyoto")+"'>Walden Woods</a> (Tabelog Top 100).","Listed open 8:30 on holidays (unverified). If it isn't open yet, try <a href='"+M("Kaikado Cafe Kyoto")+"'>Kaikado</a>'s 8 AM coffee stand."],
+  ["8:15","c","Group breakfast: <a href='"+M("Maeda Coffee Muromachi Honten Kyoto")+"'>Maeda Coffee Muromachi</a> (100 seats, morning set until 11).","Smaller, better food: <a href='"+M("Lorimer Kyoto")+"'>Lorimer</a> Japanese breakfast (book; hours unverified)."],
+  ["9:40","c","Two taxis or a jumbo taxi to the museum, about 10 min."],
+  ["10:00","a","<a href='"+M("Kyoto Railway Museum")+"'>Kyoto Railway Museum</a>. Adults ¥1,500 ($9.70), kids ¥200–500. Tickets may not be bought yet.","Lunch at Umekoji Park Cafe; let kids run in <a href='"+M("Umekoji Park Kyoto")+"'>Umekoji Park</a>."],
+  ["1:30","c","Back to hotel for naps.","Or, if energy's good: <a href='"+M("Kyoto Aquarium")+"'>Kyoto Aquarium</a> next door (adult ¥2,600 / $17)."],
+  ["3:00","a","<a href='"+M("Yasaka Shrine Kyoto")+"'>Gion + Yasaka Shrine</a>; lanterns come on around 4:45.","Coffee: <a href='"+M("% Arabica Kyoto Higashiyama")+"'>% Arabica Higashiyama</a> nearby (hours unverified)."],
+  ["6:00","c","Dinner: <a href='"+M("Ganko Sushi Sanjo Kyoto")+"'>Ganko Sushi Sanjo</a>, booths + kids' menu (hours unverified).","Taxi back, about 10 min."]]},
+ {h:"Tue Nov 24",sub:"Torii gates early, market, shopping",s:[
+  ["7:30","c","Taxis to Fushimi Inari (~15 min). Grab coffee on the way back, not before."],
+  ["8:00","a","<a href='"+M("Fushimi Inari Taisha")+"'>Fushimi Inari</a>. Carrier for the toddler.","After: <a href='"+M("Vermillion Cafe Fushimi Inari")+"'>Vermillion Café</a> (hours unverified)."],
+  ["11:30","a","<a href='"+M("Nishiki Market Kyoto")+"'>Nishiki Market</a>, graze for lunch."],
+  ["1:00","c","Split up: kids nap, shoppers hit Kawaramachi.","<a href='"+M("Onitsuka Tiger Kyoto")+"'>Onitsuka Tiger</a> · <a href='"+M("FASCINATE Kyoto")+"'>FASCINATE (ASICS)</a> · <a href='"+M("Kyukyodo Kyoto Teramachi")+"'>Kyukyodo</a> · <a href='"+M("Takashimaya Kyoto")+"'>Takashimaya</a>. Coffee: <a href='"+M("Elephant Factory Coffee Kyoto")+"'>Elephant Factory</a> or <a href='"+M("Rokuyosha Coffee Kyoto")+"'>Rokuyosha</a> (cash, closed Wed)."],
+  ["2:00","a","<a href='"+M("Kyoto Kaleidoscope Museum")+"'>Kaleidoscope Museum</a>, tickets at the door.","Osaka/Uji was floated for today. With little kids, skip it."],
+  ["4:30","c","On the walk back: <a href='"+M("D&DEPARTMENT KYOTO")+"'>D&DEPARTMENT</a> at Bukko-ji (near Gojo/Karasuma) and <a href='"+M("Kaikado Kyoto")+"'>Kaikado</a> tea caddies."],
+  ["6:00","c","Dinner: <a href='"+M("Tajimaya Yodobashi Kyoto")+"'>Tajimaya</a> all-you-can-eat shabu-shabu by the station (unverified hours).","Or <a href='"+M("Kyoto Ramen Koji")+"'>Ramen Koji</a>, Kyoto Station 10F (11–10)."]]},
+ {h:"Wed Nov 25",sub:"Arashiyama, then back to Tokyo",s:[
+  ["7:15","c","Check out first and leave bags at the front desk. Arashiyama + an 11:30 check-out is too tight.","JR Sagano line from Kyoto Station is about 15 min, or taxis about 25–30 min."],
+  ["8:00","a","<a href='"+M("Arashiyama Bamboo Grove")+"'>Bamboo Grove</a> + <a href='"+M("Iwatayama Monkey Park")+"'>Monkey Park</a> (cash only, steep).","Coffee: <a href='"+M("% Arabica Kyoto Arashiyama")+"'>% Arabica Arashiyama</a> by the river (hours unverified). Quieter alt: <a href='"+M("Adashino Nenbutsuji")+"'>Adashino Nenbutsuji</a>."],
+  ["11:15","c","Back to the hotel for bags, then the station.","Coffee for the train: <a href='"+M("Kurasu Kyoto Stand")+"'>Kurasu</a>, 7 min from the station (8–6)."],
+  ["12:30","a","Shinkansen back to Tokyo. Train time not set yet."]]}
+];
+
+
+const DAYMAP = {
+  sun:["aeon","kushiya"],
+  mon:["walden","kaikado","maeda","lorimer","rail","umekoji","aquarium","yasaka","arabica","ganko"],
+  tue:["inari","vermillion","nishiki","onitsuka","fascinate","kyukyodo","takashimaya","elephant","rokuyosha","kaleido","dandd","kaikadoshop","tajimaya","ramen"],
+  wed:["arashi","monkey","arabicaA","adashino","kurasu"]
+};
+const DAYLBL = {all:"All days",sun:"Sun 22",mon:"Mon 23",tue:"Tue 24",wed:"Wed 25",any:"Anytime"};
+const inDay = (p,d) => d==="all" || (d==="any" ? !Object.values(DAYMAP).some(a=>a.includes(p.id)) : DAYMAP[d].includes(p.id));
+const fill = c => CATS[c].color;
+const num = {}; P.forEach((p,i)=>num[p.id]=i+1);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function card(p, withShow){
+  const d=document.createElement("article"); d.className="card"; d.dataset.id=p.id;
+  const t=[`<span class="tag who">${p.who==="booked"?"Booked":"Suggested"}</span>`];
+  if(p.tags.includes("top100")) t.push('<span class="tag ok">Tabelog Top 100</span>');
+  if(p.tags.includes("verified")) t.push('<span class="tag ok">Hours checked</span>');
+  if(p.tags.includes("check")) t.push('<span class="tag warn">Check hours</span>');
+  if(p.tags.includes("kids")) t.push('<span class="tag">Kid-friendly</span>');
+  if(p.tags.includes("group")) t.push('<span class="tag">Fits 8</span>');
+  d.innerHTML=`<div class="top"><span class="num" style="background:${fill(p.cat)}">${num[p.id]}</span><h3>${esc(p.name)}</h3>${withShow?'<button class="show">On map</button>':''}</div>
+   <p class="why">${esc(p.why)}</p>
+   ${p.hours?`<div class="meta">🕘 ${esc(p.hours)}</div>`:""}
+   ${p.src?`<div class="meta">Sources: ${esc(p.src)}</div>`:""}
+   <div class="tags">${t.join("")}</div>
+   <a class="go" href="${M(p.q)}" target="_blank" rel="noopener">Open in Google Maps</a>`;
+  const b=d.querySelector(".show"); if(b) b.onclick=()=>focusPin(p.id);
+  return d;
+}
+
+const st={day:"all",cat:"all",places:"all"};
+function chipRow(el, items, cur, onPick){
+  el.innerHTML="";
+  items.forEach(([k,l,c])=>{
+    const b=document.createElement("button"); b.className="chip"; b.setAttribute("aria-pressed",cur===k);
+    b.innerHTML=(c?`<span class="dot" style="background:${c}"></span>`:"")+l;
+    b.onclick=()=>onPick(k); el.appendChild(b);
+  });
+}
+const catItems=()=>[["all","All types",null],...Object.entries(CATS).map(([k,v])=>[k,v.label,v.color])];
+
+/* ---------- live map ---------- */
+let map, markers={}, meMarker=null, meCircle=null, watching=false, firstFix=true;
+const visible = p => inDay(p,st.day) && (st.cat==="all"||p.cat===st.cat);
+function initMap(){
+  const status=document.getElementById("status");
+  if(!window.L){status.textContent="The map library didn't load (no connection?). The lists and Google Maps buttons still work.";return}
+  map=L.map("map",{zoomControl:true,tap:true}).setView([34.995,135.76],13);
+  const dark=matchMedia("(prefers-color-scheme: dark)").matches;
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${dark?"dark_all":"voyager"}/{z}/{x}/{y}{r}.png`,{
+    maxZoom:20, subdomains:"abcd", attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(map);
+  P.forEach(p=>{
+    if(p.lat==null) return;
+    const icon=L.divIcon({className:"",html:`<div class="pinicon ${p.cat==="booked"?"booked":""}" style="background:${fill(p.cat)}">${num[p.id]}</div>`,iconSize:p.cat==="booked"?[32,32]:[28,28],iconAnchor:p.cat==="booked"?[16,16]:[14,14],popupAnchor:[0,-14]});
+    const m=L.marker([p.lat,p.lng],{icon,title:p.name,riseOnHover:true});
+    m.bindPopup(`<h4>${num[p.id]}. ${esc(p.name)}</h4><p>${esc(p.who==="booked"?"Booked":"Suggested")} · ${CATS[p.cat].label}${p.hours?" · "+esc(p.hours):""}</p><a class="go" href="${M(p.q)}" target="_blank" rel="noopener">Open in Google Maps</a><a class="more" href="#" data-id="${p.id}">Details ↓</a>`);
+    markers[p.id]=m;
+  });
+  map.on("popupopen",e=>{const a=e.popup.getElement().querySelector(".more"); if(a) a.onclick=ev=>{ev.preventDefault(); const c=document.querySelector(`#list-map .card[data-id="${a.dataset.id}"]`); if(c){hl(c); c.scrollIntoView({behavior:"smooth",block:"center"})}}});
+  map.on("locationfound",onLoc);
+  map.on("locationerror",e=>{watching=false; document.getElementById("locate").classList.remove("on");
+    status.textContent = e.code===1 ? "Location is blocked. In Safari: Settings › Privacy › Location Services › Safari Websites › While Using. Then tap ◎ again." : "Couldn't get your location ("+e.message+"). Try again outside or with Wi-Fi on.";});
+  document.getElementById("locate").onclick=()=>{
+    if(meMarker && watching){ map.setView(meMarker.getLatLng(), Math.max(map.getZoom(),16)); return; }
+    firstFix=true; watching=true; document.getElementById("locate").classList.add("on");
+    status.textContent="Finding you…";
+    map.locate({watch:true,enableHighAccuracy:true,setView:false,maximumAge:10000,timeout:20000});
+  };
+  document.getElementById("fit").onclick=()=>fitVisible(true);
+  refreshMap(true);
+}
+function onLoc(e){
+  const s=document.getElementById("status");
+  if(!meMarker){
+    meCircle=L.circle(e.latlng,{radius:e.accuracy,color:"#1a73e8",weight:1,fillOpacity:.12,interactive:false}).addTo(map);
+    meMarker=L.marker(e.latlng,{icon:L.divIcon({className:"",html:'<div class="medot"></div>',iconSize:[18,18],iconAnchor:[9,9]}),zIndexOffset:1000,interactive:false}).addTo(map);
+  } else { meMarker.setLatLng(e.latlng); meCircle.setLatLng(e.latlng).setRadius(e.accuracy); }
+  if(firstFix){ firstFix=false; map.setView(e.latlng,16); }
+  s.textContent=`You're the blue dot (±${Math.round(e.accuracy)} m). Tap ◎ to re-center. Pins are approximate; Google Maps has the exact spot.`;
+  // distances in list
+  document.querySelectorAll(".card[data-id]").forEach(c=>{const p=P.find(x=>x.id===c.dataset.id); if(!p||p.lat==null) return;
+    const d=e.latlng.distanceTo([p.lat,p.lng]); let el=c.querySelector(".dist"); if(!el){el=document.createElement("div"); el.className="meta dist"; c.querySelector(".why").after(el)}
+    el.textContent="📍 "+(d<1000?Math.round(d/10)*10+" m":(d/1000).toFixed(1)+" km")+" away (straight line, approx.)";});
+}
+function fitVisible(force){
+  if(!map) return;
+  const ll=P.filter(p=>visible(p)&&p.lat!=null).map(p=>[p.lat,p.lng]);
+  if(ll.length) map.fitBounds(ll,{padding:[30,30],maxZoom:16});
+}
+function refreshMap(fit){
+  chipRow(document.getElementById("chips-day"), Object.entries(DAYLBL).map(([k,l])=>[k,l,null]), st.day, k=>{st.day=k; refreshMap(true)});
+  chipRow(document.getElementById("chips-cat"), catItems(), st.cat, k=>{st.cat=k; refreshMap(true)});
+  if(map){ Object.entries(markers).forEach(([id,m])=>{const p=P.find(x=>x.id===id); if(visible(p)) m.addTo(map); else m.remove();}); if(fit) fitVisible(); }
+  const el=document.getElementById("list-map"); el.innerHTML="";
+  P.filter(visible).forEach(p=>el.appendChild(card(p,true)));
+  try{localStorage.setItem("kyotoF",JSON.stringify({day:st.day,cat:st.cat}))}catch(e){}
+}
+function hl(c){document.querySelectorAll(".card.hl").forEach(e=>e.classList.remove("hl")); c.classList.add("hl")}
+function focusPin(id){
+  show("map"); const p=P.find(x=>x.id===id);
+  if(!visible(p)){st.day="all"; st.cat="all"; refreshMap(false)}
+  if(map&&markers[id]){ window.scrollTo({top:0,behavior:"smooth"}); map.setView(markers[id].getLatLng(),16); markers[id].openPopup(); }
+}
+
+/* ---------- days + places ---------- */
+function days(){
+  const el=document.getElementById("v-days");
+  el.innerHTML=DAYS.map((d,i)=>`<div class="day"><h2>${d.h}</h2><div class="sub">${d.sub}</div><button class="onmap" data-d="${["sun","mon","tue","wed"][i]}">Show this day on the map</button>${d.s.map(([t,w,txt,alt])=>`<div class="slot"><time>${t}</time><div class="body"><span class="${w==="a"?"who-a":"who-c"}">${w==="a"?"booked":"suggested"}</span>${txt}${alt?`<div class="alt">${alt}</div>`:""}</div></div>`).join("")}</div>`).join("");
+  el.querySelectorAll("a").forEach(a=>{a.target="_blank";a.rel="noopener"});
+  el.querySelectorAll(".onmap").forEach(b=>b.onclick=()=>{st.day=b.dataset.d; st.cat="all"; show("map"); refreshMap(true); window.scrollTo({top:0})});
+}
+function places(){
+  chipRow(document.getElementById("chips-places"), catItems(), st.places, k=>{st.places=k; places()});
+  const el=document.getElementById("list-places"); el.innerHTML="";
+  P.filter(p=>st.places==="all"||p.cat===st.places).forEach(p=>el.appendChild(card(p,true)));
+}
+function show(v){
+  ["days","map","places"].forEach(k=>{document.getElementById("v-"+k).hidden=k!==v; document.getElementById("t-"+k).setAttribute("aria-selected",k===v)});
+  if(v==="map"&&map) setTimeout(()=>map.invalidateSize(),0);
+  try{localStorage.setItem("kyotoTab",v)}catch(e){}
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.v));
+try{const f=JSON.parse(localStorage.getItem("kyotoF")||"null"); if(f){st.day=f.day||"all"; st.cat=f.cat||"all"}}catch(e){}
+days(); places(); initMap(); if(!map) refreshMap(false);
+let start="map"; try{start=localStorage.getItem("kyotoTab")||"map"}catch(e){}
+show(start);
+</script>
+</body>
+</html>
